@@ -1,0 +1,12 @@
+name: 'get-metadata'
+description: ''
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+inputs:
+  github_token:
+    description: ''
+    required: true
+  org_config:
+    description: ''
+    required: true
