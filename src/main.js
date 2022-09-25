@@ -75,11 +75,12 @@ async function main() {
         metadata.PROJECT_NAME = event.repository.name
         metadata.PROJECT_APP = getMetadataFromTopics('app', orgConfig.apps, event.repository.topics)
         metadata.DOCKER_IMAGE_NAME = `${manifest['helm']['values']['image']['registry']}/${manifest['helm']['values']['image']['repository']}`;
-        metadata.REGISTRY_CREDENTIALS_PATH = orgConfig['registry_credentials'][manifest['helm']['values']['image_pull_secrets'][0]]
+        metadata.VAULT_REGISTRY_CREDENTIALS_PATH = orgConfig['registry_credentials'][manifest['helm']['values']['image_pull_secrets'][0]]
+        metadata.VAULT_GITHUB_TOKEN_PATH = orgConfig['github_token_path']
         if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
             const environment = orgConfig['staging_environment']
             const releaseName = manifest['helm']['release_name']
-            metadata.K8S_ROLE_PATH = orgConfig['environments'][environment]['k8s_role_path']
+            metadata.VAULT_K8S_ROLE_PATH = orgConfig['environments'][environment]['k8s_role_path']
             metadata.CREATE_STAGING = !(manifest['skip_staging'] === true)
             metadata.STAGING_DOMAIN = `${event.number}.${releaseName}.${environment}.${orgConfig['route53']['domain']}`
             metadata.NAMESPACE = `${releaseName}-${event.number}`
@@ -96,14 +97,14 @@ async function main() {
         if (process.env.GITHUB_EVENT_NAME === 'push') {
             if (workflow === 'helmRelease') {
                 const environment = manifest['environment']
-                metadata.K8S_ROLE_PATH = orgConfig['environments'][environment]['k8s_role_path']
+                metadata.VAULT_K8S_ROLE_PATH = orgConfig['environments'][environment]['k8s_role_path']
                 metadata.ENVIRONMENT = environment
                 metadata.NAMESPACE = manifest['helm']['namespace']
             }
             if (workflow === 'cloudfront') {
-                metadata.SUBDOMAIN = manifest['subdomain'];
-                metadata.BUCKET = manifest['bucket'];
-                metadata.CUSTOM_TYPES = JSON.stringify(manifest['custom_types'] ?? '[]');
+                metadata.SUBDOMAIN = manifest['cloudfront']['domain'];
+                metadata.BUCKET = manifest['cloudfront']['bucket'];
+                metadata.CUSTOM_TYPES = JSON.stringify(manifest['cloudfront']['custom_types'] ?? '[]');
             }
         }
     }
@@ -118,13 +119,15 @@ async function main() {
         metadata.GO_MAIN_FILE = manifest["go"]["main_file"]
     }
 
-    if (workflow === 'library') {
-        metadata.PROJECT_NAME = event.repository.name
-    }
-
     if (workflow === 'helmChart') {
         metadata.CHART_NAME = manifest['name'];
         metadata.CHART_TYPE = manifest['type'];
+    }
+
+    if (workflow === 'luarock') {
+        metadata.PACKAGE_NAME = event.repository.name
+        metadata.ROCK_PREFIX = `${event.repository.name }-${version}`
+        metadata.ROCK_FILE = `${metadata.ROCK_PREFIX}-0.rockspec`
     }
 
     Object.keys(metadata).forEach(k => {core.setOutput(k.toLowerCase(), metadata[k])})

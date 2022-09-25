@@ -1,12 +1,13 @@
 module.exports = {
     overrideKey: 'override',
     workflowTopics: {
-        library: ['library', 'package', 'kong-plugin'],
+        library: ['library', 'package', ],
         helmRelease: ['helm-release', 'deployment', 'cronjob'],
         helmChart: ['helm-chart'],
         docker: ['docker-image'],
         go: ['vault-plugin'],
-        cloudfront: ['website', 'react-app']
+        cloudfront: ['website', 'react-app'],
+        luarock: ['kong-plugin']
     },
     defaults: {
         MANIFEST_FILE: 'manifest.yaml',
