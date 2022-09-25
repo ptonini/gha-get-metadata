@@ -102,7 +102,9 @@ async function main() {
                 metadata.NAMESPACE = manifest['helm']['namespace']
             }
             if (workflow === 'cloudfront') {
-                metadata.SUBDOMAIN = manifest['cloudfront']['domain'];
+                metadata.ARTIFACT_NAME = `${event.repository.name}-${version}.tar.gz`
+                metadata.VAULT_AWS_ROLE_PATH = manifest['cloudfront']['aws_role_path']
+                metadata.DISTRIBUTION_ID = manifest['cloudfront']['distribution_id'];
                 metadata.BUCKET = manifest['cloudfront']['bucket'];
                 metadata.CUSTOM_TYPES = JSON.stringify(manifest['cloudfront']['custom_types'] ?? '[]');
             }
