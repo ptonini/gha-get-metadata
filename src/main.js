@@ -58,7 +58,7 @@ async function main() {
 
     if (process.env.GITHUB_EVENT_NAME === 'pull_request' && ['opened', 'synchronize'].includes(event.action)) {
         metadata.PUBLISH_CANDIDATE = true
-        metadata.HOUSEKEEPING = true
+        metadata.HOUSEKEEPING = !(manifest['skip_housekeeping'] === true)
     }
     if (process.env.GITHUB_EVENT_NAME === 'pull_request' && event.action === 'closed') {
         metadata.APPROVE_CANDIDATE = event.pull_request.merged
@@ -90,7 +90,7 @@ async function main() {
             }
             if (metadata.CREATE_STAGING && event.action === 'closed' ) {
                 metadata.DESTROY_STAGING = true
-                metadata.AWS_ROLE_PATH = orgConfig['route53']['aws_role_path']
+                metadata.VAULT_AWS_ROLE_PATH = orgConfig['route53']['aws_role_path']
                 metadata.ROUTE53_ZONE_ID = orgConfig['route53']['zone_id']
             }
         }
