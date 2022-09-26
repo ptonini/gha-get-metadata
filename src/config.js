@@ -1,8 +1,8 @@
 module.exports = {
     overrideKey: 'override',
     workflowTopics: {
-        library: ['library', 'package', ],
-        helmRelease: ['helm-release', 'deployment', 'cronjob'],
+        library: ['library', 'package'],
+        helmRelease: ['helm-release'],
         helmChart: ['helm-chart'],
         docker: ['docker-image'],
         go: ['vault-plugin'],

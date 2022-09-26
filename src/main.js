@@ -94,7 +94,7 @@ async function main() {
                 metadata.ROUTE53_ZONE_ID = orgConfig['route53']['zone_id']
             }
         }
-        if (process.env.GITHUB_EVENT_NAME === 'push') {
+        if (['workflow_dispatch', 'push'].includes(process.env.GITHUB_EVENT_NAME)) {
             if (workflow === 'helmRelease') {
                 const environment = manifest['environment']
                 metadata.VAULT_K8S_ROLE_PATH = orgConfig['environments'][environment]['k8s_role_path']
