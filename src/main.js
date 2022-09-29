@@ -74,9 +74,13 @@ async function main() {
     if (['helmRelease', 'cloudfront'].includes(workflow)) {
         metadata.PROJECT_NAME = event.repository.name
         metadata.PROJECT_APP = getMetadataFromTopics('app', orgConfig.apps, event.repository.topics)
-        metadata.DOCKER_IMAGE_NAME = `${manifest['helm']['values']['image']['registry']}/${manifest['helm']['values']['image']['repository']}`;
+        metadata.DOCKER_IMAGE_NAME = `${manifest['helm']['values']['image']['registry']}/${manifest['helm']['values']['image']['repository']}`
+
         metadata.VAULT_REGISTRY_CREDENTIALS_PATH = orgConfig['registry_credentials'][manifest['helm']['values']['image_pull_secrets'][0]]
         metadata.VAULT_GITHUB_TOKEN_PATH = orgConfig['github_token_path']
+        metadata.INGRESS_CONFIG_REPOSITORY = orgConfig['ingress_config_repository']
+        metadata.PRD_NAMESPACE = manifest['helm']['namespace']
+        metadata.PRD_ENVIRONMENT = manifest['environment']
         if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
             const environment = orgConfig['staging_environment']
             const releaseName = manifest['helm']['release_name']
