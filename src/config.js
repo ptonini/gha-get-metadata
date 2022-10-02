@@ -3,7 +3,6 @@ module.exports = {
     workflowTopics: {
         library: ['library', 'package'],
         helmRelease: ['helm-release'],
-        helmChart: ['helm-chart'],
         docker: ['docker-image'],
         go: ['vault-plugin'],
         cloudfront: ['website', 'react-app'],
@@ -23,6 +22,9 @@ module.exports = {
         GO_TEST_REPORT: "report.out",
         PYTHON_COVERAGE_REPORT: "*coverage-*.xml",
         PYTHON_XUNIT_REPORT: "xunit-result-*.xml",
-        JAVASCRIPT_LCOV_INFO: "lcov.info"
+        JAVASCRIPT_LCOV_INFO: "lcov.info",
+        HELM_SECRET_CHART: 'secret',
+        HELM_SECRET_CHART_VERSION: '^2.0.0',
+        HELM_REPOSITORY: 'https://charts.nodis.com.br'
     }
 };

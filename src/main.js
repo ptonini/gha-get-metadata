@@ -49,10 +49,9 @@ async function main() {
     const workflow = getWorkflow(projectType)
 
     const metadata = {...config.defaults}
-    metadata.MANIFEST_FILE = workflow === 'helmChart' ? 'Chart.yaml' : metadata.MANIFEST_FILE
-
     const manifest = yaml.parse(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${metadata.MANIFEST_FILE}`, 'utf-8'))
     const {'.': version } = yaml.parse(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${metadata.RP_MANIFEST_FILE}`, 'utf-8'))
+
     metadata.SKIP_TESTS = manifest['skip_tests'] === true
     metadata.RELEASE_VERSION = version
 
@@ -72,11 +71,11 @@ async function main() {
     }
 
     if (['helmRelease', 'cloudfront'].includes(workflow)) {
-        metadata.PROJECT_NAME = event.repository.name
-        metadata.PROJECT_APP = getMetadataFromTopics('app', orgConfig.apps, event.repository.topics)
+        const imagePullSecret = manifest['helm']['values']['image_pull_secrets'][0]
+        metadata.APP_GROUP = getMetadataFromTopics('app', orgConfig.apps, event.repository.topics)
         metadata.DOCKER_IMAGE_NAME = `${manifest['helm']['values']['image']['registry']}/${manifest['helm']['values']['image']['repository']}`
-
-        metadata.VAULT_REGISTRY_CREDENTIALS_PATH = orgConfig['registry_credentials'][manifest['helm']['values']['image_pull_secrets'][0]]
+        metadata.IMAGE_PULL_SECRET = imagePullSecret
+        metadata.VAULT_REGISTRY_CREDENTIALS_PATH = orgConfig['registry_credentials'][imagePullSecret]
         metadata.VAULT_GITHUB_TOKEN_PATH = orgConfig['github_token_path']
         metadata.INGRESS_CONFIG_REPOSITORY = orgConfig['ingress_config_repository']
         metadata.PRD_NAMESPACE = manifest['helm']['namespace']
@@ -123,11 +122,6 @@ async function main() {
         metadata.GO_APP_NAME = manifest['go']['app_name'] ?? event.repository.name
         metadata.GO_BUILDER_IMAGE = manifest["go"]["builder_image"]
         metadata.GO_MAIN_FILE = manifest["go"]["main_file"]
-    }
-
-    if (workflow === 'helmChart') {
-        metadata.CHART_NAME = manifest['name'];
-        metadata.CHART_TYPE = manifest['type'];
     }
 
     if (workflow === 'luarock') {
