@@ -71,7 +71,7 @@ async function main() {
     }
 
     if (['helmRelease', 'cloudfront'].includes(workflow)) {
-        const imagePullSecret = manifest['helm']['values']['image_pull_secrets'][0]
+        const imagePullSecret = manifest['helm']['values']['imagePullSecrets'][0]
         metadata.APP_GROUP = getMetadataFromTopics('app', orgConfig.apps, event.repository.topics)
         metadata.DOCKER_IMAGE_NAME = `${manifest['helm']['values']['image']['registry']}/${manifest['helm']['values']['image']['repository']}`
         metadata.IMAGE_PULL_SECRET = imagePullSecret
