@@ -80,6 +80,7 @@ async function main() {
         metadata.INGRESS_CONFIG_REPOSITORY = orgConfig['ingress_config_repository']
         metadata.PRD_NAMESPACE = manifest['helm']['namespace']
         metadata.PRD_ENVIRONMENT = manifest['environment']
+        metadata.INGRESS_PATH = `${manifest['helm']['namespace']}/${manifest['environment']}`
         if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
             const environment = orgConfig['staging_environment']
             const releaseName = manifest['helm']['release_name']
@@ -115,7 +116,7 @@ async function main() {
     }
 
     if (workflow === 'docker') {
-        metadata.DOCKER_IMAGE_NAME = manifest['docker']['image_name'];
+        metadata.DOCKER_REPOSITORY = manifest['docker']['image_name'];
     }
 
     if (workflow === 'go') {
