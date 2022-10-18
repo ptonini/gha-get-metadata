@@ -62,7 +62,7 @@ async function main() {
     metadata.SKIP_TESTS = manifest['skip_tests'] === true
     metadata.RELEASE_VERSION = version
 
-    if (process.env.GITHUB_EVENT_NAME === 'pull_request' && ['opened', 'synchronize'].includes(event.action)) {
+    if (process.env.GITHUB_EVENT_NAME === 'pull_request' && ['opened', 'synchronize', 'reopened'].includes(event.action)) {
         metadata.PUBLISH_CANDIDATE = true
         metadata.HOUSEKEEPING = !(manifest['skip_housekeeping'] === true)
     }
