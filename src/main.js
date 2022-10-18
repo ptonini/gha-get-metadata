@@ -47,10 +47,17 @@ async function main() {
     const event = yaml.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf-8'))
     const projectType = getMetadataFromTopics('type', aggregateTypes(), event.repository.topics, true)
     const workflow = getWorkflow(projectType)
-
     const metadata = {...config.defaults}
-    const manifest = yaml.parse(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${metadata.MANIFEST_FILE}`, 'utf-8'))
-    const {'.': version } = yaml.parse(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${metadata.RP_MANIFEST_FILE}`, 'utf-8'))
+
+    let manifest = {}
+    if (fs.existsSync(metadata.MANIFEST_FILE)) {
+        manifest = yaml.parse(fs.readFileSync(metadata.MANIFEST_FILE, 'utf-8'))
+    }
+
+    let version = '0.0.0'
+    if (fs.existsSync(metadata.RP_MANIFEST_FILE)) {
+        version = yaml.parse(fs.readFileSync(metadata.RP_MANIFEST_FILE, 'utf-8'))
+    }
 
     metadata.SKIP_TESTS = manifest['skip_tests'] === true
     metadata.RELEASE_VERSION = version
@@ -59,11 +66,13 @@ async function main() {
         metadata.PUBLISH_CANDIDATE = true
         metadata.HOUSEKEEPING = !(manifest['skip_housekeeping'] === true)
     }
+
     if (process.env.GITHUB_EVENT_NAME === 'pull_request' && event.action === 'closed') {
         metadata.APPROVE_CANDIDATE = event.pull_request.merged
         metadata.HOUSEKEEPING = false
         metadata.SKIP_TESTS = true
     }
+
     if (process.env.GITHUB_EVENT_NAME === 'push' && event.head_commit.message.includes(`chore(${event.repository.default_branch}): release`)) {
         metadata.PROMOTE_CANDIDATE = true
         metadata.HOUSEKEEPING = false
@@ -116,14 +125,14 @@ async function main() {
     }
 
     if (workflow === 'docker') {
-        metadata.DOCKER_REPOSITORY = manifest['docker']['image_name'];
+        metadata.DOCKER_REPOSITORY = `ghcr.io/${event.repository.full_name}`;
     }
 
     if (workflow === 'go') {
-        metadata.GO_APP_NAME = manifest['go']['app_name'] ?? event.repository.name
+        metadata.GO_APP_NAME = event.repository.name
+        metadata.GO_MAIN_FILE = "main.go"
         metadata.GO_BUILDER_IMAGE = manifest["go"]["builder_image"]
-        metadata.GO_MAIN_FILE = manifest["go"]["main_file"]
-    }
+        }
 
     if (workflow === 'luarock') {
         metadata.PACKAGE_NAME = event.repository.name
