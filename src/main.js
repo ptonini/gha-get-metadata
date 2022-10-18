@@ -56,7 +56,7 @@ async function main() {
 
     let version = '0.0.0'
     if (fs.existsSync(metadata.RP_MANIFEST_FILE)) {
-        version = yaml.parse(fs.readFileSync(metadata.RP_MANIFEST_FILE, 'utf-8'))
+        version = yaml.parse(fs.readFileSync(metadata.RP_MANIFEST_FILE, 'utf-8'))['.']
     }
 
     metadata.SKIP_TESTS = manifest['skip_tests'] === true
@@ -140,11 +140,17 @@ async function main() {
         metadata.ROCK_FILE = `${metadata.ROCK_PREFIX}-0.rockspec`
     }
 
-    Object.keys(metadata).forEach(k => {core.setOutput(k.toLowerCase(), metadata[k])})
-    const encodedMetadata = JSON.stringify(metadata, null, 4)
-    core.info(encodedMetadata);
-    fs.writeFileSync('./metadata.json', encodedMetadata);
+    Object.keys(metadata).forEach(k => {
+        core.setOutput(k.toLowerCase(), metadata[k])
+        core.info(`${k}=${metadata[k]}`)
+    })
+
+    fs.writeFileSync('./metadata.json',  JSON.stringify(metadata, null, 4));
     await artifactClient.uploadArtifact('metadata', ['metadata.json'], '.')
+
+    fs.writeFileSync('./event.json', JSON.stringify(event, null, 4));
+    await artifactClient.uploadArtifact('event', ['event.json'], '.')
+
 }
 
 main().catch(error => {core.setFailed(error)});
