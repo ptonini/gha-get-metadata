@@ -103,8 +103,6 @@ async function main() {
             }
             if (metadata.CREATE_STAGING && event.action === 'closed' ) {
                 metadata.DESTROY_STAGING = true
-                metadata.VAULT_AWS_ROLE_PATH = orgConfig['route53']['aws_role_path']
-                metadata.ROUTE53_ZONE_ID = orgConfig['route53']['zone_id']
             }
         }
         if (['workflow_dispatch', 'push'].includes(process.env.GITHUB_EVENT_NAME)) {
