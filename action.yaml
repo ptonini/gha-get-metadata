@@ -4,9 +4,6 @@ runs:
   using: 'node16'
   main: 'dist/index.js'
 inputs:
-  github_token:
+  vault_k8s_role_paths:
     description: ''
-    required: true
-  org_config:
-    description: ''
-    required: true
+    required: false
