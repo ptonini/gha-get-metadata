@@ -1,5 +1,6 @@
 // Load .env file for local testing
-require('dotenv').config();
+const dotenv = require('dotenv').config();
+require('dotenv-expand').expand(dotenv)
 
 const core = require('@actions/core');
 const artifact = require('@actions/artifact');
@@ -9,44 +10,34 @@ const config = require('./config.js');
 const process = require('process');
 const artifactClient = artifact.create();
 
-function getWorkflow(type) {
-    let workflow
-    Object.keys(config.workflowTopics).forEach(k => {
-        if (config.workflowTopics[k].includes(type)) {
-            workflow = k
-        }
-    })
-    return workflow
-}
+function getWorkflowFromTopics(topics) {
 
-function aggregateTypes() {
-    let classArray = [];
-    Object.keys(config.workflowTopics).forEach(k => {
-        classArray = classArray.concat(config.workflowTopics[k])
-    })
-    return classArray
-}
+    let topicMatches = [];
+    let workflow;
 
-function getMetadataFromTopics(label, types, topics, required) {
-    let matches = types.filter(v => topics.includes(v))
-    if (matches.length === 1) {
-        return matches[0];
-    } else if (matches.length === 0) {
-        required && core.setFailed('project missing ' + label + ' topic');
-        return ''
+    Object.keys(config.workflowTopics).forEach(k => {
+        let matches = config.workflowTopics[k].filter(v => topics.includes(v))
+        topicMatches = topicMatches.concat(matches)
+        if (matches.length === 1) workflow = k
+    })
+
+    if (topicMatches.length === 1) {
+        return workflow;
+    } else if (topicMatches.length === 0) {
+        core.setFailed('project missing workflow topic');
     } else {
-        core.setFailed('project has multiple ' + label + ' topics [' + matches.join(' ') + ']');
+        core.setFailed('project has multiple workflow topics [' + topicMatches.join(' ') + ']');
     }
+
 }
 
 
 async function main() {
 
-    const vaultK8sRolePaths = yaml.parse(core.getInput('vault_k8s_role_paths'));
+    const rolePaths = yaml.parse(core.getInput('vault_k8s_role_paths'));
     const event = yaml.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf-8'))
-    const projectType = getMetadataFromTopics('type', aggregateTypes(), event.repository.topics, true)
     const workspace = process.env.GITHUB_WORKSPACE
-    const workflow = getWorkflow(projectType)
+    const workflow = getWorkflowFromTopics(event.repository.topics)
     const metadata = {}
 
     let manifest = {}
@@ -62,7 +53,7 @@ async function main() {
 
     if (workflow === 'helmRelease' || workflow === 'cloudfront') {
         core.setOutput('DOCKER_REPOSITORY', `${manifest['helm']['values']['image']['registry']}/${manifest['helm']['values']['image']['repository']}`)
-        core.setOutput('VAULT_K8S_ROLE_PATH',vaultK8sRolePaths[manifest['environment']])
+        core.setOutput('VAULT_K8S_ROLE_PATH', rolePaths[manifest['environment']])
     }
 
     if (workflow === 'cloudfront') {
@@ -73,7 +64,7 @@ async function main() {
         metadata.CUSTOM_TYPES = JSON.stringify(manifest['cloudfront']['custom_types'] ?? '[]');
     }
 
-    if (workflow === 'docker') {
+    if (workflow === 'container') {
         metadata.DOCKER_REPOSITORY = `ghcr.io/${event.repository.full_name}`;
     }
 
@@ -81,12 +72,6 @@ async function main() {
         metadata.GO_APP_NAME = event.repository.name
         metadata.GO_MAIN_FILE = "main.go"
         metadata.GO_BUILDER_IMAGE = manifest["go"]["builder_image"]
-    }
-
-    if (workflow === 'luarock') {
-        metadata.PACKAGE_NAME = event.repository.name
-        metadata.ROCK_PREFIX = `${event.repository.name}-${version}`
-        metadata.ROCK_FILE = `${metadata.ROCK_PREFIX}-0.rockspec`
     }
 
     Object.keys(metadata).forEach(k => {

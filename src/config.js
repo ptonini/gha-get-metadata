@@ -5,7 +5,7 @@ module.exports = {
     workflowTopics: {
         library: ['library', 'package'],
         helmRelease: ['helm-release'],
-        docker: ['docker-image', 'admission-controller'],
+        container: ['container-image', 'docker-image', 'admission-controller'],
         go: ['vault-plugin'],
         cloudfront: ['website', 'reactjs-app'],
         luarock: ['kong-plugin']
