@@ -3,12 +3,11 @@ const dotenv = require('dotenv').config();
 require('dotenv-expand').expand(dotenv)
 
 const core = require('@actions/core');
-const artifact = require('@actions/artifact');
+const artifact = require('@actions/artifact').create();
 const fs = require('fs');
 const yaml = require('yaml');
-const config = require('./config.js');
 const process = require('process');
-const artifactClient = artifact.create();
+const config = require('./config.js');
 
 function getWorkflowFromTopics(topics) {
 
@@ -80,10 +79,8 @@ async function main() {
     })
 
     fs.writeFileSync('./metadata.json', JSON.stringify(metadata, null, 4));
-    await artifactClient.uploadArtifact('metadata', ['metadata.json'], '.')
-
-    fs.writeFileSync('./event.json', JSON.stringify(event, null, 4));
-    await artifactClient.uploadArtifact('event', ['event.json'], '.')
+    await artifact.uploadArtifact('metadata', ['metadata.json'], '.')
+    await artifact.uploadArtifact('event', [process.env.GITHUB_EVENT_PATH], '/')
 
 }
 
